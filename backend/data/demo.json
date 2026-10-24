@@ -1,0 +1,15 @@
+{
+  "forecasts": [
+    {"startTime": "2026-01-01T12:00:00Z", "publishTime": "2025-12-31T08:00:00Z", "generation": 810},
+    {"startTime": "2026-01-01T12:00:00Z", "publishTime": "2026-01-01T08:30:00Z", "generation": 850},
+    {"startTime": "2026-01-01T12:00:00Z", "publishTime": "2026-01-01T10:30:00Z", "generation": 920},
+    {"startTime": "2026-01-01T12:30:00Z", "publishTime": "2026-01-01T08:00:00Z", "generation": 790},
+    {"startTime": "2026-01-01T12:30:00Z", "publishTime": "2026-01-01T09:45:00Z", "generation": 830},
+    {"startTime": "2026-01-01T13:00:00Z", "publishTime": "2026-01-01T08:00:00Z", "generation": 760}
+  ],
+  "actuals": [
+    {"startTime": "2026-01-01T12:00:00Z", "generation": 880},
+    {"startTime": "2026-01-01T12:30:00Z", "generation": 800},
+    {"startTime": "2026-01-01T13:00:00Z", "generation": 760}
+  ]
+}

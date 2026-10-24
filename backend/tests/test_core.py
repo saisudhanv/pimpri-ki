@@ -1,5 +1,7 @@
 import pandas as pd
+from fastapi.testclient import TestClient
 
+from app.main import app
 from app.metrics import calculate_metrics
 from app.selection import select_forecast_vintages
 
@@ -58,3 +60,15 @@ def test_different_cutoffs_select_different_auditable_publications():
     assert early.iloc[0]["forecast_mw"] == 10
     assert late.iloc[0]["forecast_mw"] == 14
     assert early.iloc[0]["forecast_publish_time"] != late.iloc[0]["forecast_publish_time"]
+
+
+def test_api_rejects_invalid_cutoff_and_supports_date_filter():
+    client = TestClient(app)
+    invalid = client.get("/api/comparison?cutoff=99:99")
+    assert invalid.status_code == 422
+    filtered = client.get("/api/comparison?start_date=2026-01-01&end_date=2026-01-01")
+    assert filtered.status_code == 200
+    assert len(filtered.json()["rows"]) == 3
+    empty = client.get("/api/comparison?start_date=2026-01-02&end_date=2026-01-02")
+    assert empty.status_code == 200
+    assert empty.json()["rows"] == []

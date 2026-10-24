@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Line,
   LineChart,
@@ -95,19 +95,24 @@ function Sparkline({ rows }) {
 
 function App() {
   const [cutoff, setCutoff] = useState("10:00");
+  const [startDate, setStartDate] = useState("2026-01-01");
+  const [endDate, setEndDate] = useState("2026-01-31");
   const [data, setData] = useState(null);
   const [quality, setQuality] = useState(null);
   const [error, setError] = useState("");
   const [demand, setDemand] = useState("");
 
-  const load = () =>
-    Promise.all([
-      fetch(`${API}/api/comparison?cutoff=${cutoff}`).then((r) =>
+  const load = useCallback(() => {
+    const filters = `cutoff=${cutoff}&start_date=${startDate}&end_date=${endDate}`;
+    return Promise.all([
+      fetch(`${API}/api/comparison?${filters}`).then((r) =>
         r.ok
           ? r.json()
           : Promise.reject(new Error("Comparison request failed")),
       ),
-      fetch(`${API}/api/accuracy?cutoff=${cutoff}`).then((r) => r.json()),
+      fetch(`${API}/api/accuracy?${filters}`).then((r) =>
+        r.ok ? r.json() : Promise.reject(new Error("Accuracy request failed")),
+      ),
       fetch(`${API}/api/data-quality`).then((r) => r.json()),
     ])
       .then(([comparison, accuracy, dq]) => {
@@ -118,10 +123,11 @@ function App() {
       .catch((e) =>
         setError(`${e.message}. Start the FastAPI service on port 8000.`),
       );
+  }, [cutoff, startDate, endDate]);
   useEffect(() => {
     load();
-  }, [cutoff]);
-  const rows = data?.rows || [];
+  }, [load]);
+  const rows = useMemo(() => data?.rows || [], [data]);
   const first = rows.find((row) => row.forecast_mw != null);
   const residual =
     demand !== "" && first
@@ -171,6 +177,22 @@ function App() {
         </div>
       )}
       <section className="filters">
+        <label>
+          Delivery start{" "}
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </label>
+        <label>
+          Delivery end{" "}
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </label>
         <label>
           Decision cutoff{" "}
           <input

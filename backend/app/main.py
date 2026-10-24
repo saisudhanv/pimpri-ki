@@ -1,8 +1,8 @@
 import os
-from datetime import time
+from datetime import date, time
 
 import pandas as pd
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from .data import load_demo
@@ -15,12 +15,21 @@ origins = [item.strip() for item in os.getenv("FRONTEND_ORIGINS", "http://localh
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
-def _dataset(cutoff: str = "10:00") -> pd.DataFrame:
+def _dataset(cutoff: str = "10:00", start_date: date | None = None, end_date: date | None = None) -> pd.DataFrame:
     forecasts, actuals = load_demo()
-    cutoff_time = time.fromisoformat(cutoff)
+    try:
+        cutoff_time = time.fromisoformat(cutoff)
+    except ValueError as error:
+        raise ValueError("cutoff must be a valid 24-hour time, for example 10:00") from error
     # Demo data uses UTC timestamps; the configured cutoff is Europe/London.
     decision = pd.Timestamp("2026-01-01", tz="Europe/London").replace(hour=cutoff_time.hour, minute=cutoff_time.minute)
-    return select_forecast_vintages(forecasts, actuals, decision.tz_convert("UTC"))
+    result = select_forecast_vintages(forecasts, actuals, decision.tz_convert("UTC"))
+    if start_date and end_date:
+        if end_date < start_date:
+            raise ValueError("end_date must not be before start_date")
+        target = pd.to_datetime(result["target_time"], utc=True)
+        result = result[(target.dt.date >= start_date) & (target.dt.date <= end_date)]
+    return result
 
 
 def _records(frame: pd.DataFrame) -> list[dict]:
@@ -33,17 +42,32 @@ def health():
 
 
 @app.get("/api/comparison")
-def comparison(cutoff: str = Query("10:00", pattern=r"^\d{2}:\d{2}$")):
-    return {"mode": "demo", "rows": _records(_dataset(cutoff))}
+def comparison(
+    cutoff: str = Query("10:00", pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$"),
+    start_date: date | None = None,
+    end_date: date | None = None,
+):
+    try:
+        rows = _dataset(cutoff, start_date, end_date)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    return {"mode": "demo", "rows": _records(rows)}
 
 
 @app.get("/api/accuracy", response_model=AccuracyResponse)
-def accuracy(cutoff: str = Query("10:00", pattern=r"^\d{2}:\d{2}$")):
-    return calculate_metrics(_dataset(cutoff))
+def accuracy(
+    cutoff: str = Query("10:00", pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$"),
+    start_date: date | None = None,
+    end_date: date | None = None,
+):
+    try:
+        return calculate_metrics(_dataset(cutoff, start_date, end_date))
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @app.get("/api/forecasts")
-def forecasts(cutoff: str = Query("10:00", pattern=r"^\d{2}:\d{2}$")):
+def forecasts(cutoff: str = Query("10:00", pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$")):
     return {"mode": "demo", "rows": _records(_dataset(cutoff)[["target_time", "forecast_publish_time", "forecast_mw", "decision_cutoff"]])}
 
 
@@ -57,14 +81,21 @@ def actuals():
 def vintages(target_time: str | None = None):
     forecasts, _ = load_demo()
     if target_time:
-        target = pd.Timestamp(target_time, tz="UTC")
+        try:
+            target = pd.Timestamp(target_time)
+        except (TypeError, ValueError) as error:
+            raise HTTPException(status_code=422, detail="target_time must be a valid ISO-8601 timestamp") from error
+        if target.tzinfo is None:
+            target = target.tz_localize("UTC")
+        else:
+            target = target.tz_convert("UTC")
         forecasts["target_time"] = pd.to_datetime(forecasts["target_time"], utc=True)
         forecasts = forecasts[forecasts["target_time"] == target]
     return {"mode": "demo", "rows": _records(forecasts)}
 
 
 @app.get("/api/overview")
-def overview(cutoff: str = "10:00"):
+def overview(cutoff: str = Query("10:00", pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$")):
     rows = _dataset(cutoff)
     metrics = calculate_metrics(rows)
     return {"mode": "demo", "status": "fixture-ready", "decision_period": "1-31 January 2026", "cutoff": cutoff, "metrics": metrics, "row_count": len(rows)}

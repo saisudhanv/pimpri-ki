@@ -13,10 +13,20 @@ from .selection import select_forecast_vintages
 app = FastAPI(title="Wind Procurement Intelligence", version="1.0.0")
 origins = [
     item.strip().rstrip("/")
-    for item in os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(",")
+    for item in os.getenv(
+        "FRONTEND_ORIGINS",
+        "http://localhost:5173,https://pimpri-ki-g6v8.vercel.app",
+    ).split(",")
     if item.strip()
 ]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_origin_regex=r"https://pimpri-ki-[a-z0-9-]+\.vercel\.app",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def _dataset(cutoff: str = "10:00", start_date: date | None = None, end_date: date | None = None) -> pd.DataFrame:

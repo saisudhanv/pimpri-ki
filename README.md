@@ -69,9 +69,9 @@ The browser calls the backend rather than Elexon directly, and CORS is restricte
 Run backend tests with `pytest backend/tests`. Validate the frontend with `npm run lint` and `npm run build` from `frontend/vite-pro`; no frontend unit-test runner is currently configured. For separate Vercel deployments, set these environment variables before redeploying:
 
 - Frontend project: `VITE_API_URL=https://<backend-vercel-domain>`
-- Backend project: `FRONTEND_ORIGINS=https://<frontend-vercel-domain>`
+- Backend project: `FRONTEND_ORIGINS=https://pimpri-ki-g6v8.vercel.app`
 
-`VITE_API_URL` may include a trailing slash; the client removes it before appending `/api`. `FRONTEND_ORIGINS` accepts comma-separated origins and ignores trailing slashes. Do not set it to the full API URL or include a path. Deploy FastAPI on a Python-compatible service with `FRONTEND_ORIGINS` configured. Serverless filesystems are not durable: use object storage or a database only when persistent production history is required.
+`VITE_API_URL` may include a trailing slash; the client removes it before appending `/api`. `FRONTEND_ORIGINS` accepts comma-separated origins and ignores trailing slashes. The backend also allows this project's Vercel production and preview frontend domains in code so a missing Vercel environment variable does not silently disable CORS. Do not set it to the full API URL or include a path. After changing `VITE_API_URL`, create a new frontend deployment; Vite embeds this value into the static build at build time. Deploy FastAPI on a Python-compatible service with `FRONTEND_ORIGINS` configured. Serverless filesystems are not durable: use object storage or a database only when persistent production history is required.
 
 
 ## AI tools disclosure

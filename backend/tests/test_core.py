@@ -72,3 +72,12 @@ def test_api_rejects_invalid_cutoff_and_supports_date_filter():
     empty = client.get("/api/comparison?start_date=2026-01-02&end_date=2026-01-02")
     assert empty.status_code == 200
     assert empty.json()["rows"] == []
+
+
+def test_api_allows_deployed_vercel_frontend_origin():
+    response = TestClient(app).get(
+        "/health",
+        headers={"Origin": "https://pimpri-ki-g6v8.vercel.app"},
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://pimpri-ki-g6v8.vercel.app"

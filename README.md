@@ -6,7 +6,15 @@ A FastAPI and React dashboard for reconstructing GB national wind forecasts avai
 
 The January 2026 prototype treats 1-31 January as **decision dates**, with delivery intervals through 1 February. The default `10:00 Europe/London` cutoff is an illustrative, configurable assumption, not a contractual deadline. All timestamps are normalized to UTC internally and displayed in local time.
 
-Official integration boundaries are Elexon's [FUELHH](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/FUELHH/stream) actual dataset and [WINDFOR](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/WINDFOR/stream) forecast dataset. The documented BMRS base is `https://data.elexon.co.uk/bmrs/api/v1/datasets`; the client keeps `publishTime` history and never overwrites vintages. The checked-in fixture is synthetic and is explicitly marked DEMO DATA; it is not an Elexon observation.
+Official integration boundaries are Elexon's [FUELHH](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/FUELHH/stream) actual dataset and [WINDFOR](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/WINDFOR/stream) forecast dataset. The verified BMRS base is `https://data.elexon.co.uk/bmrs/api/v1/datasets`. Dataset requests use `settlementDateFrom` and `settlementDateTo`; FUELHH additionally uses `fuelType=WIND`. Responses observed during the October 2026 audit were either a bare JSON list or an envelope containing `value`/`data`, and the client validates both forms.
+
+### January 2026 integration audit
+
+On 24 October 2026, a live FUELHH request for `settlementDateFrom=2026-01-01&settlementDateTo=2026-02-01&fuelType=WIND` returned 1,536 records, all with `fuelType=WIND`, covering `2026-01-01T00:00:00Z` through `2026-02-01T23:30:00Z`. This is 32 days of 48 half-hourly target intervals.
+
+The same documented date-bound request to WINDFOR returned 74 records covering `2026-10-23` through `2026-10-26`, with a single current publication time, rather than January 2026. The client rejects this response with an explicit coverage error. It does not use those records, fill the gap with zeros, or label the demo fixture as historical Elexon data. Therefore January forecast accuracy cannot be reported from the currently accessible WINDFOR stream until an official historical forecast archive or an approved archived extract is provided.
+
+The retrieval code is in `backend/app/data.py`; `fetch_january_2026()` deliberately fails rather than returning a partially valid actuals/forecast pair.
 
 For each target interval, the selection service filters `publishTime <= cutoff`, then chooses the latest eligible publication. Missing forecasts remain missing. Metrics use only valid matched pairs and define `error = forecast - actual`. MAE, RMSE and bias are MW; MAPE excludes zero actuals; WAPE uses the sum of absolute actuals.
 

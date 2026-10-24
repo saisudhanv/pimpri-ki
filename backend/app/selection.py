@@ -10,17 +10,23 @@ def select_forecast_vintages(
         cutoff = cutoff.tz_localize("UTC")
     else:
         cutoff = cutoff.tz_convert("UTC")
+    required_forecast = {"target_time", "publish_time", "forecast_mw"}
+    required_actual = {"target_time", "actual_mw"}
+    if not required_forecast.issubset(forecasts.columns):
+        raise ValueError("forecasts must contain target_time, publish_time, and forecast_mw")
+    if not required_actual.issubset(actuals.columns):
+        raise ValueError("actuals must contain target_time and actual_mw")
     f = forecasts.copy()
     a = actuals.copy()
     for frame, columns in ((f, ["target_time", "publish_time"]), (a, ["target_time"])):
         for column in columns:
             frame[column] = pd.to_datetime(frame[column], utc=True, errors="coerce")
     f = f.dropna(subset=["target_time", "publish_time", "forecast_mw"])
-    eligible = f[f["publish_time"] <= cutoff].sort_values("publish_time")
+    eligible = f[f["publish_time"] <= cutoff].sort_values(["target_time", "publish_time"])
     selected = eligible.drop_duplicates("target_time", keep="last").copy()
     selected = selected.rename(columns={"publish_time": "forecast_publish_time"})
     selected["decision_cutoff"] = cutoff
-    a = a.rename(columns={"actual_mw": "actual_mw"})
+    a = a.drop_duplicates("target_time", keep="last")
     result = selected[["target_time", "decision_cutoff", "forecast_publish_time", "forecast_mw"]].merge(
         a[["target_time", "actual_mw"]], on="target_time", how="outer"
     )

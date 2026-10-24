@@ -11,7 +11,11 @@ from .models import AccuracyResponse, ResidualDemandRequest, ResidualDemandRespo
 from .selection import select_forecast_vintages
 
 app = FastAPI(title="Wind Procurement Intelligence", version="1.0.0")
-origins = [item.strip() for item in os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(",")]
+origins = [
+    item.strip().rstrip("/")
+    for item in os.getenv("FRONTEND_ORIGINS", "http://localhost:5173").split(",")
+    if item.strip()
+]
 app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 

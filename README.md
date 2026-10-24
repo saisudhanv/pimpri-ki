@@ -68,7 +68,6 @@ The browser calls the backend rather than Elexon directly, and CORS is restricte
 
 Run backend tests with `pytest backend/tests`. Validate the frontend with `npm run lint` and `npm run build` from `frontend/vite-pro`; no frontend unit-test runner is currently configured. Vercel can deploy `frontend/vite-pro` with `VITE_API_URL` set to the deployed FastAPI origin. Deploy FastAPI on a Python-compatible service with `FRONTEND_ORIGINS` configured. Serverless filesystems are not durable: use object storage or a database only when persistent production history is required.
 
-Known limitations include the demo-only default dataset, no credentials or production scheduler, and no demand, price, imports, or contractual-position data. Those inputs are deliberately not invented.
 
 ## AI tools disclosure
 

@@ -8,10 +8,7 @@
   ],
   "functions": {
     "api/index.py": {
-      "includeFiles": [
-        "app/**",
-        "data/**"
-      ]
+      "includeFiles": "data/**"
     }
   }
 }

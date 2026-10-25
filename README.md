@@ -79,3 +79,8 @@ Run backend tests with `pytest backend/tests`. Validate the frontend with `npm r
 ## AI tools disclosure
 
 This first version was implemented with AI assistance in VS Code using Copilot SDK. The assistant contributed the initial application structure, selection and metric implementations, UI, tests, Docker files, and documentation. The repository author remains responsible for reviewing the code, validating live Elexon behavior, configuring deployment, and accepting the known demo-mode limitations; no claim is made that AI performed an independent security or production-readiness review.
+
+
+
+## Live Demo
+Link: https://pimpri-ki-g6v8.vercel.app/

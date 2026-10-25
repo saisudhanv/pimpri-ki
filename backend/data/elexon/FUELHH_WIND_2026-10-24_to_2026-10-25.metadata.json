@@ -1,0 +1,15 @@
+﻿{
+    "source":  "Elexon BMRS",
+    "dataset":  "FUELHH",
+    "fuelType":  "WIND",
+    "endpoint":  "https://data.elexon.co.uk/bmrs/api/v1/datasets/FUELHH/stream",
+    "query":  {
+                  "settlementDateFrom":  "2026-10-24",
+                  "settlementDateTo":  "2026-10-25",
+                  "fuelType":  "WIND"
+              },
+    "fetchedAtUtc":  "2026-10-25T04:11:56.7054338Z",
+    "httpStatus":  200,
+    "recordCount":  58,
+    "note":  "Raw official response snapshot; not consumed by the existing demo application."
+}

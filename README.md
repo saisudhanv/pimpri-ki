@@ -16,6 +16,8 @@ The same documented date-bound request to WINDFOR returned 74 records covering `
 
 The retrieval code is in `backend/app/data.py`; `fetch_january_2026()` deliberately fails rather than returning a partially valid actuals/forecast pair.
 
+An independent official FUELHH observation snapshot was fetched on 25 October 2026 for `2026-10-24` through `2026-10-25` with `fuelType=WIND`. The 58-record raw response and request metadata are preserved under `backend/data/elexon/`. These files are not loaded by the existing demo endpoints, so the dashboard behavior and synthetic fixture remain unchanged.
+
 For each target interval, the selection service filters `publishTime <= cutoff`, then chooses the latest eligible publication. Missing forecasts remain missing. Metrics use only valid matched pairs and define `error = forecast - actual`. MAE, RMSE and bias are MW; MAPE excludes zero actuals; WAPE uses the sum of absolute actuals.
 
 ## Local setup

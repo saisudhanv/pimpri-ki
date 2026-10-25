@@ -80,6 +80,10 @@ Run backend tests with `pytest backend/tests`. Validate the frontend with `npm r
 
 This first version was implemented with AI assistance in VS Code using Copilot SDK. The assistant contributed the initial application structure, selection and metric implementations, UI, tests, Docker files, and documentation. The repository author remains responsible for reviewing the code, validating live Elexon behavior, configuring deployment, and accepting the known demo-mode limitations; no claim is made that AI performed an independent security or production-readiness review.
 
+## Architecture
+<img width="1536" height="1024" alt="Wind Procurement Intelligence Architecture" src="https://github.com/user-attachments/assets/dda4e177-4c33-4595-96cf-e0997f52d7f0" />
+
+
 
 
 ## Live Demo
